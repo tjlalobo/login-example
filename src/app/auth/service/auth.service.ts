@@ -1,21 +1,23 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 
 import { Observable, of } from 'rxjs';
 import { delay, tap } from 'rxjs/operators';
 
+import { SESSION_STORAGE, StorageService } from 'ngx-webstorage-service';
+
 import { User } from '../../login/models/user';
 import { USERS } from '../mock-data/users';
+
+export const TOK_KEY = "tok";
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  isLoggedIn: boolean;
-
   redirectUrl: string;
 
-  constructor() { }
+  constructor(@Inject(SESSION_STORAGE) private storage: StorageService) { }
 
   login(credentials: { email: string, password: string }): Observable<User> {
     console.log('logging in...')
@@ -23,14 +25,13 @@ export class AuthService {
     return of(
       USERS.find(u => u.email === credentials.email)
       ).pipe(
-        delay(1000),
+        delay(5000),
         tap(u => {
               if (u) {
                 console.log('login successful');
-                this.isLoggedIn = true;
+                this.storage.set(TOK_KEY, u);
               }else {
                 console.log('login failed');
-                this.isLoggedIn = false;
               }
             }
           )
@@ -39,7 +40,7 @@ export class AuthService {
 
   logout() {
     console.log('logging out...');
-    this.isLoggedIn = false;
+    this.storage.remove(TOK_KEY);
     console.log('logout successful');
   }
 

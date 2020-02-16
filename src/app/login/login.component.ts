@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router }   from '@angular/router';
 
-import { AuthService } from '../auth/service/auth.service';
+import { SESSION_STORAGE, StorageService } from 'ngx-webstorage-service';
+
+import { AuthService, TOK_KEY } from '../auth/service/auth.service';
 import { User } from './models/user';
 
 @Component({
@@ -17,7 +19,10 @@ export class LoginComponent implements OnInit {
     password: new FormControl('')
   });
 
-  constructor(private authService: AuthService, private router: Router) { }
+  constructor(
+    @Inject(SESSION_STORAGE) private storage: StorageService,
+    private authService: AuthService, 
+    private router: Router) { }
 
   ngOnInit() {
   }
@@ -25,7 +30,7 @@ export class LoginComponent implements OnInit {
   login() {
     const user$ = this.authService.login(this.loginForm.value);
     user$.subscribe(u => {
-      if (this.authService.isLoggedIn) {
+      if (this.storage.has(TOK_KEY)) {
         const redirect = this.authService.redirectUrl ? this.router.parseUrl(this.authService.redirectUrl) : '/dashboards';
         this.router.navigateByUrl(redirect);
       }
